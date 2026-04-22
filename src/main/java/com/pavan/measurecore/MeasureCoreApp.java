@@ -2,27 +2,6 @@ package com.pavan.measurecore;
 
 public class MeasureCoreApp {
 
-    enum LengthUnit {
-        FEET(1.0),
-        INCH(1.0 / 12.0),
-        YARD(3.0),
-        CM(0.0328084);
-
-        private final double conversionFactor;
-
-        LengthUnit(double conversionFactor) {
-            this.conversionFactor = conversionFactor;
-        }
-
-        public double toBaseUnit(double value) {
-            return value * conversionFactor;
-        }
-
-        public double getConversionFactor() {
-            return conversionFactor;
-        }
-    }
-
     static class Quantity {
         private final double value;
         private final LengthUnit unit;
@@ -39,7 +18,19 @@ public class MeasureCoreApp {
         }
 
         private double toBaseUnit() {
-            return unit.toBaseUnit(value);
+            return unit.convertToBaseUnit(value);
+        }
+
+        // Convert to another unit
+        public Quantity convertTo(LengthUnit targetUnit) {
+            if (targetUnit == null) {
+                throw new IllegalArgumentException("Target unit cannot be null");
+            }
+
+            double baseValue = this.toBaseUnit();
+            double convertedValue = targetUnit.convertFromBaseUnit(baseValue);
+
+            return new Quantity(convertedValue, targetUnit);
         }
 
         // UC6
@@ -48,27 +39,25 @@ public class MeasureCoreApp {
                 throw new IllegalArgumentException("Other quantity cannot be null");
             }
 
-            double sumInBase = this.toBaseUnit() + other.toBaseUnit();
-            double resultValue = sumInBase / this.unit.getConversionFactor();
+            double sumBase = this.toBaseUnit() + other.toBaseUnit();
+            double result = unit.convertFromBaseUnit(sumBase);
 
-            return new Quantity(resultValue, this.unit);
+            return new Quantity(result, this.unit);
         }
 
-        // UC7 (NEW)
+        // UC7
         public Quantity add(Quantity other, LengthUnit targetUnit) {
-
             if (other == null) {
                 throw new IllegalArgumentException("Other quantity cannot be null");
             }
-
             if (targetUnit == null) {
                 throw new IllegalArgumentException("Target unit cannot be null");
             }
 
-            double sumInBase = this.toBaseUnit() + other.toBaseUnit();
-            double resultValue = sumInBase / targetUnit.getConversionFactor();
+            double sumBase = this.toBaseUnit() + other.toBaseUnit();
+            double result = targetUnit.convertFromBaseUnit(sumBase);
 
-            return new Quantity(resultValue, targetUnit);
+            return new Quantity(result, targetUnit);
         }
 
         @Override
@@ -91,47 +80,30 @@ public class MeasureCoreApp {
         }
     }
 
-    public static double convert(double value, LengthUnit source, LengthUnit target) {
-
-        if (!Double.isFinite(value)) {
-            throw new IllegalArgumentException("Invalid value");
-        }
-
-        if (source == null || target == null) {
-            throw new IllegalArgumentException("Unit cannot be null");
-        }
-
-        double baseValue = source.toBaseUnit(value);
-        return baseValue / target.getConversionFactor();
-    }
-
     public static void main(String[] args) {
 
-        // UC6
+        // Conversion
+        System.out.println(
+                new Quantity(1.0, LengthUnit.FEET)
+                        .convertTo(LengthUnit.INCH)
+        ); // 12 inch
+
+        // Equality
+        System.out.println(
+                new Quantity(36.0, LengthUnit.INCH)
+                        .equals(new Quantity(1.0, LengthUnit.YARD))
+        ); // true
+
+        // Addition UC6
         System.out.println(
                 new Quantity(1.0, LengthUnit.FEET)
                         .add(new Quantity(12.0, LengthUnit.INCH))
-        ); // 2 FEET
+        ); // 2 feet
 
-        // UC7 examples
-        System.out.println(
-                new Quantity(1.0, LengthUnit.FEET)
-                        .add(new Quantity(12.0, LengthUnit.INCH), LengthUnit.INCH)
-        ); // 24 INCH
-
+        // Addition UC7
         System.out.println(
                 new Quantity(1.0, LengthUnit.FEET)
                         .add(new Quantity(12.0, LengthUnit.INCH), LengthUnit.YARD)
-        ); // ~0.667 YARD
-
-        System.out.println(
-                new Quantity(1.0, LengthUnit.YARD)
-                        .add(new Quantity(3.0, LengthUnit.FEET), LengthUnit.FEET)
-        ); // 6 FEET
-
-        System.out.println(
-                new Quantity(2.54, LengthUnit.CM)
-                        .add(new Quantity(1.0, LengthUnit.INCH), LengthUnit.CM)
-        ); // ~5.08 CM
+        ); // ~0.667 yard
     }
 }
