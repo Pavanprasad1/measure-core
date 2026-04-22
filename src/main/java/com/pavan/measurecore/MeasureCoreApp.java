@@ -1,78 +1,63 @@
 package com.pavan.measurecore;
 
 public class MeasureCoreApp {
-    // ---------------- FEET CLASS ----------------
-    static class Feet {
-        private final double value;
 
-        public Feet(double value) {
+    enum LengthUnit {
+        FEET(1.0),
+        INCH(1.0 / 12.0);
+
+        private final double conversionFactor;
+
+        LengthUnit(double conversionFactor) {
+            this.conversionFactor = conversionFactor;
+        }
+
+        public double toBaseUnit(double value) {
+            return value * conversionFactor;
+        }
+    }
+
+    static class Quantity {
+        private final double value;
+        private final LengthUnit unit;
+
+        public Quantity(double value, LengthUnit unit) {
+            if (unit == null) {
+                throw new IllegalArgumentException("Unit cannot be null");
+            }
             this.value = value;
+            this.unit = unit;
+        }
+
+        private double toBaseUnit() {
+            return unit.toBaseUnit(value);
         }
 
         @Override
         public boolean equals(Object obj) {
             if (this == obj) return true;
             if (obj == null || getClass() != obj.getClass()) return false;
-            Feet feet = (Feet) obj;
-            return Double.compare(this.value, feet.value) == 0;
+
+            Quantity other = (Quantity) obj;
+            return Double.compare(this.toBaseUnit(), other.toBaseUnit()) == 0;
         }
 
         @Override
         public int hashCode() {
-            return Double.hashCode(value);
+            return Double.hashCode(toBaseUnit());
         }
     }
-
-    // ---------------- INCH CLASS ----------------
-    static class Inch {
-        private final double value;
-
-        public Inch(double value) {
-            this.value = value;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj) return true;
-            if (obj == null || getClass() != obj.getClass()) return false;
-            Inch inch = (Inch) obj;
-            return Double.compare(this.value, inch.value) == 0;
-        }
-
-        @Override
-        public int hashCode() {
-            return Double.hashCode(value);
-        }
-    }
-
-// ---------------- METHODS (IMPORTANT FOR UC2) ----------------
-
-    public static boolean compareFeet(double v1, double v2) {
-        Feet f1 = new Feet(v1);
-        Feet f2 = new Feet(v2);
-        return f1.equals(f2);
-    }
-
-    public static boolean compareInch(double v1, double v2) {
-        Inch i1 = new Inch(v1);
-        Inch i2 = new Inch(v2);
-        return i1.equals(i2);
-    }
-
-// ---------------- MAIN METHOD ----------------
 
     public static void main(String[] args) {
 
-        // Feet comparison
-        boolean feetResult = compareFeet(1.0, 1.0);
-        System.out.println("Input: 1.0 ft and 1.0 ft");
-        System.out.println("Output: Equal (" + feetResult + ")");
+        Quantity q1 = new Quantity(1.0, LengthUnit.FEET);
+        Quantity q2 = new Quantity(12.0, LengthUnit.INCH);
 
-        // Inch comparison
-        boolean inchResult = compareInch(1.0, 1.0);
-        System.out.println("Input: 1.0 inch and 1.0 inch");
-        System.out.println("Output: Equal (" + inchResult + ")");
+        System.out.println(q1.equals(q2)); // true
+
+        Quantity q3 = new Quantity(1.0, LengthUnit.INCH);
+        Quantity q4 = new Quantity(1.0, LengthUnit.INCH);
+
+        System.out.println(q3.equals(q4)); // true
     }
-
 }
-
