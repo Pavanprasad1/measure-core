@@ -4,7 +4,9 @@ public class MeasureCoreApp {
 
     enum LengthUnit {
         FEET(1.0),
-        INCH(1.0 / 12.0);
+        INCH(1.0 / 12.0),
+        YARD(3.0),
+        CM(0.0328084);
 
         private final double conversionFactor;
 
@@ -50,14 +52,20 @@ public class MeasureCoreApp {
 
     public static void main(String[] args) {
 
-        Quantity q1 = new Quantity(1.0, LengthUnit.FEET);
-        Quantity q2 = new Quantity(12.0, LengthUnit.INCH);
+        // Yard vs Feet
+        System.out.println(new Quantity(1.0, LengthUnit.YARD)
+                .equals(new Quantity(3.0, LengthUnit.FEET))); // true
 
-        System.out.println(q1.equals(q2)); // true
+        // Yard vs Inch
+        System.out.println(new Quantity(1.0, LengthUnit.YARD)
+                .equals(new Quantity(36.0, LengthUnit.INCH))); // true
 
-        Quantity q3 = new Quantity(1.0, LengthUnit.INCH);
-        Quantity q4 = new Quantity(1.0, LengthUnit.INCH);
+        // CM vs Inch
+        System.out.println(new Quantity(1.0, LengthUnit.CM)
+                .equals(new Quantity(0.393701, LengthUnit.INCH))); // true
 
-        System.out.println(q3.equals(q4)); // true
+        // Same unit
+        System.out.println(new Quantity(2.0, LengthUnit.YARD)
+                .equals(new Quantity(2.0, LengthUnit.YARD))); // true
     }
 }
