@@ -2,7 +2,6 @@ package com.pavan.measurecore;
 
 public class MeasureCoreApp {
 
-    // ---------------- ENUM ----------------
     enum LengthUnit {
         FEET(1.0),
         INCH(1.0 / 12.0),
@@ -24,7 +23,6 @@ public class MeasureCoreApp {
         }
     }
 
-    // ---------------- QUANTITY CLASS ----------------
     static class Quantity {
         private final double value;
         private final LengthUnit unit;
@@ -42,6 +40,19 @@ public class MeasureCoreApp {
 
         private double toBaseUnit() {
             return unit.toBaseUnit(value);
+        }
+
+        public Quantity add(Quantity other) {
+
+            if (other == null) {
+                throw new IllegalArgumentException("Other quantity cannot be null");
+            }
+
+            double sumInBase = this.toBaseUnit() + other.toBaseUnit();
+
+            double resultValue = sumInBase / this.unit.getConversionFactor();
+
+            return new Quantity(resultValue, this.unit);
         }
 
         @Override
@@ -65,7 +76,6 @@ public class MeasureCoreApp {
         }
     }
 
-    // ---------------- CONVERSION METHOD ----------------
     public static double convert(double value, LengthUnit source, LengthUnit target) {
 
         if (!Double.isFinite(value)) {
@@ -76,51 +86,37 @@ public class MeasureCoreApp {
             throw new IllegalArgumentException("Unit cannot be null");
         }
 
-        // Convert to base unit (FEET)
         double baseValue = source.toBaseUnit(value);
 
-        // Convert base → target
         return baseValue / target.getConversionFactor();
     }
 
-    // ---------------- MAIN METHOD ----------------
     public static void main(String[] args) {
 
-        // -------- UC3 & UC4 (Equality) --------
-        System.out.println("1 ft == 12 inch → " +
+        // -------- ADDITION TESTS --------
+        System.out.println(
                 new Quantity(1.0, LengthUnit.FEET)
-                        .equals(new Quantity(12.0, LengthUnit.INCH))); // true
+                        .add(new Quantity(2.0, LengthUnit.FEET))
+        ); // 3 ft
 
-        System.out.println("1 yard == 3 ft → " +
+        System.out.println(
+                new Quantity(1.0, LengthUnit.FEET)
+                        .add(new Quantity(12.0, LengthUnit.INCH))
+        ); // 2 ft
+
+        System.out.println(
+                new Quantity(12.0, LengthUnit.INCH)
+                        .add(new Quantity(1.0, LengthUnit.FEET))
+        ); // 24 inch
+
+        System.out.println(
                 new Quantity(1.0, LengthUnit.YARD)
-                        .equals(new Quantity(3.0, LengthUnit.FEET))); // true
+                        .add(new Quantity(3.0, LengthUnit.FEET))
+        ); // 2 yard
 
-        System.out.println("1 cm == 0.393701 inch → " +
-                new Quantity(1.0, LengthUnit.CM)
-                        .equals(new Quantity(0.393701, LengthUnit.INCH))); // true
-
-        // -------- UC5 (Conversion) --------
-        System.out.println("\n--- Conversion ---");
-
-        System.out.println("Feet → Inches: " +
-                convert(1.0, LengthUnit.FEET, LengthUnit.INCH)); // 12
-
-        System.out.println("Yards → Feet: " +
-                convert(3.0, LengthUnit.YARD, LengthUnit.FEET)); // 9
-
-        System.out.println("Inches → Yards: " +
-                convert(36.0, LengthUnit.INCH, LengthUnit.YARD)); // 1
-
-        System.out.println("CM → Inches: " +
-                convert(1.0, LengthUnit.CM, LengthUnit.INCH)); // ~0.393701
-
-        System.out.println("Same Unit (Feet → Feet): " +
-                convert(5.0, LengthUnit.FEET, LengthUnit.FEET)); // 5
-
-        System.out.println("Negative Value: " +
-                convert(-1.0, LengthUnit.FEET, LengthUnit.INCH)); // -12
-
-        System.out.println("Zero Value: " +
-                convert(0.0, LengthUnit.FEET, LengthUnit.INCH)); // 0
+        System.out.println(
+                new Quantity(2.54, LengthUnit.CM)
+                        .add(new Quantity(1.0, LengthUnit.INCH))
+        ); // ~5.08 cm
     }
 }
